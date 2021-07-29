@@ -11,6 +11,10 @@ namespace intouch
         static void Main(string[] args)
         {
             var dllPath = Path.GetFullPath(@"./apk/unknown/assemblies/InTouchLib_Generic.dll");
+            if (args.Length > 0)
+            {
+                dllPath = Path.GetFullPath(args[0]);
+            }
 
             // xamarin decompress dll (if required)
             byte[] bytes;
@@ -42,13 +46,19 @@ namespace intouch
             }
 
             Assembly assembly = Assembly.Load(bytes);
+
+            // create data reader
+            var intouchdata = assembly.CreateInstance("InTouchLib.Util.InTouchData");
+
+            // load xml stream
             var resstm = assembly.GetManifestResourceStream("InTouchLib.Resources.SpaPackStruct.xml");
             var br = new BinaryReader(resstm);
             var d1 = br.ReadBytes((int)resstm.Length);
 
-            var intouchdata = assembly.CreateInstance("InTouchLib.Util.InTouchData");
+            // read into bytes
             byte[] d2 = (byte[])intouchdata.GetType().InvokeMember("Read", BindingFlags.InvokeMethod | BindingFlags.Instance | BindingFlags.Public, null, intouchdata, new Object[] { d1 });
 
+            // encode and export
             var xml = Encoding.GetEncoding("ISO-8859-1").GetString(d2);
             File.WriteAllText("SpaPackStruct.xml", xml.TrimEnd('\0'));
 
