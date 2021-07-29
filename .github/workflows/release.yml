@@ -1,0 +1,41 @@
+name: Main
+
+on:
+  push:
+    tags:
+      - "*.*.*"
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v2
+      - name: Setup dotnet
+        uses: actions/setup-dotnet@v1
+        with:
+          dotnet-version: "5.0.x"
+      - name: Build Windows x86
+        run: dotnet publish -c release -r win-x86
+      - name: Build Windows x64
+        run: dotnet publish -c release -r win-x64
+      - name: Build Windows arm
+        run: dotnet publish -c release -r win-arm
+      - name: Build Windows arm64
+        run: dotnet publish -c release -r win-arm64
+      - name: Build MacOS
+        run: dotnet publish -c release -r osx-x64
+      - name: Build Linux x64
+        run: dotnet publish -c release -r linux-x64
+      - name: Build Linux musl-x64
+        run: dotnet publish -c release -r linux-musl-x64
+      - name: Build Linux arm
+        run: dotnet publish -c release -r linux-arm
+      - name: Build Linux arm64
+        run: dotnet publish -c release -r linux-arm64
+      - name: Release
+        uses: softprops/action-gh-release@v1
+        with:
+          files: |
+            !**/*.pdb
+            bin/release/net5.0/*/publish/*
